@@ -1,55 +1,83 @@
 class AccountDB:
-    def __init__(self, account_number, account_type, account_name, initial_balance):
-        self.account_number = account_number
-        self.account_type = account_type
+    def __init__(self):
+        self.account_database = []
+
+    def insert(self, account):
+        index = self.__search_private(account.account_number)
+        if index == -1:
+            self.account_database.append(account)
+        else:
+            print(f"{account} Duplicated account; nothing to be inserted")
+
+    def __search_private(self, account_num):
+        for i, account in enumerate(self.account_database):
+            if account.account_number == account_num:
+                return i
+        return -1
+
+    def search_public(self, account_num):
+        for account in self.account_database:
+            if account.account_number == account_num:
+                return account
+        return None
+
+    def delete(self, account_num):
+        index = self.__search_private(account_num)
+        if index != -1:
+            deleted_account = self.account_database.pop(index)
+            print(f"Deleted account: {deleted_account}")
+        else:
+            print(f"Account {account_num} not found; nothing to be deleted.")
+
+    def __str__(self):
+        s = ''
+        for account in self.account_database:
+            s += str(account) + ", "
+        return s
+
+
+class Account:
+    def __init__(self, num, type, account_name, balance):
+        self.account_number = num
+        self.type = type
         self.account_name = account_name
-        self.balance = initial_balance
+        self.balance = balance
 
     def deposit(self, amount):
-        if amount > 0:
-            self.balance += amount
-            print(f"Depositing {amount} to {self.account_number}")
-        else:
-            print("Invalid deposit amount.")
+        self.balance += amount
 
     def withdraw(self, amount):
-        if 0 < amount <= self.balance:
+        if self.balance >= amount:
             self.balance -= amount
-            print(f"Withdrawing {amount} from {self.account_number}")
-        else:
-            print(
-                f"Withdrawal amount {amount} exceeds the balance of {self.balance} for {self.account_number} account.")
 
-    def show_account_details(self):
-        print(f"Showing details for {self.account_number}")
-        print(f"Account Number: {self.account_number}")
-        print(f"Account Type: {self.account_type}")
-        print(f"Account Name: {self.account_name}")
-        print(f"Balance: {self.balance}")
+    def __str__(self):
+        return '{' + str(self.account_number) + ',' + str(self.type) + ',' + str(self.account_name) + ',' + str(
+            self.balance) + '}'
 
-    def delete(self, account_database):
-        # You can implement the delete method to remove the account from the database here.
-        print(f"Deleting account: {self.account_number}")
-        account_database.remove(self)
 
-account_database = []
+account1 = Account("0000", "saving", "David Patterson", 1000)
+account2 = Account("0001", "checking", "John Hennessy", 2000)
+account3 = Account("0003", "saving", "Mark Hill", 3000)
+account4 = Account("0004", "saving", "David Wood", 4000)
+account5 = Account("0004", "saving", "David Wood", 4000)
 
-account1 = AccountDB("0000", "saving", "David Patterson", 1000)
-account2 = AccountDB("0001", "checking", "John Hennessy", 2000)
+my_account_DB = AccountDB()
+my_account_DB.insert(account1)
+my_account_DB.insert(account2)
+my_account_DB.insert(account3)
+my_account_DB.insert(account4)
+my_account_DB.insert(account5)
+print(my_account_DB)
 
-account_database.append(account1)
-account_database.append(account2)
+account = my_account_DB.search_public("0003")
+if account:
+    account.deposit(50)
+print(my_account_DB)
 
-account1.show_account_details()
-account1.deposit(50)
-account1.show_account_details()
-account1.withdraw(25)
-account1.show_account_details()
+account = my_account_DB.search_public("0003")
+if account:
+    account.withdraw(100)
+print(my_account_DB)
 
-account2.show_account_details()
-account2.deposit(300)
-account2.show_account_details()
-account2.withdraw(5000)
-
-#test
-account1.delete(account_database)
+my_account_DB.delete("0000")  # Test the delete method
+print(my_account_DB)
