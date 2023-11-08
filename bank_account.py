@@ -1,4 +1,4 @@
-class Account:
+class AccountDB:
     def __init__(self, account_number, account_type, account_name, initial_balance):
         self.account_number = account_number
         self.account_type = account_type
@@ -27,9 +27,18 @@ class Account:
         print(f"Account Name: {self.account_name}")
         print(f"Balance: {self.balance}")
 
+    def delete(self, account_database):
+        # You can implement the delete method to remove the account from the database here.
+        print(f"Deleting account: {self.account_number}")
+        account_database.remove(self)
 
-account1 = Account("0000", "saving", "David Patterson", 1000)
-account2 = Account("0001", "checking", "John Hennessy", 2000)
+account_database = []
+
+account1 = AccountDB("0000", "saving", "David Patterson", 1000)
+account2 = AccountDB("0001", "checking", "John Hennessy", 2000)
+
+account_database.append(account1)
+account_database.append(account2)
 
 account1.show_account_details()
 account1.deposit(50)
@@ -42,3 +51,5 @@ account2.deposit(300)
 account2.show_account_details()
 account2.withdraw(5000)
 
+#test
+account1.delete(account_database)
