@@ -1,8 +1,7 @@
 import csv, os
 
 __location__ = os.path.realpath(
-    os.path.join(os.getcwd(), os.path.dirname(__file__))
-)
+    os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 cities = []
 with open(os.path.join(__location__, 'Cities.csv')) as f:
@@ -15,6 +14,7 @@ with open(os.path.join(__location__, 'Countries.csv')) as f:
     rows = csv.DictReader(f)
     for r in rows:
         countries.append(dict(r))
+
 
 class DB:
     def __init__(self):
@@ -29,7 +29,9 @@ class DB:
                 return table
         return None
 
+
 import copy
+
 
 class Table:
     def __init__(self, table_name, table):
@@ -61,17 +63,18 @@ class Table:
         return function(temps)
 
     def select(self, attributes_list):
-        selected_table = Table(self.table_name + '_selected', [])
+        temps = []
         for item1 in self.table:
             dict_temp = {}
             for key in item1:
                 if key in attributes_list:
                     dict_temp[key] = item1[key]
-            selected_table.table.append(dict_temp)
-        return selected_table
+            temps.append(dict_temp)
+        return temps
 
     def __str__(self):
         return self.table_name + ':' + str(self.table)
+
 
 table1 = Table('cities', cities)
 table2 = Table('countries', countries)
@@ -79,22 +82,48 @@ my_DB = DB()
 my_DB.insert(table1)
 my_DB.insert(table2)
 my_table1 = my_DB.search('cities')
-my_table1_filtered = my_table1.filter(lambda x: x['country'] == 'Italy')
-my_table1_selected = my_table1.select(['name', 'latitude'])  # Changed 'city' to 'name'
-print(my_table1)
-print()
-print(my_table1_selected)
 
+print("Test filter: only filtering out cities in Italy")
+my_table1_filtered = my_table1.filter(lambda x: x['country'] == 'Italy')
+print(my_table1_filtered)
+print()
+
+print("Test select: only displaying two fields, city and latitude, for cities in Italy")
+my_table1_selected = my_table1_filtered.select(['city', 'latitude'])
+print(my_table1_selected)
+print()
+
+print("Calculting the average temperature without using aggregate for cities in Italy")
 temps = []
 for item in my_table1_filtered.table:
     temps.append(float(item['temperature']))
-if temps:  # Check if there are temperatures to avoid division by zero
-    print("Average temperature in Italy:", sum(temps) / len(temps))
-print("Using aggregation")
-print(my_table1_filtered.aggregate(lambda x: sum(x) / len(x), 'temperature'))
-
+print(sum(temps) / len(temps))
 print()
+
+print("Calculting the average temperature using aggregate for cities in Italy")
+print(my_table1_filtered.aggregate(lambda x: sum(x) / len(x), 'temperature'))
+print()
+
+print("Test join: finding cities in non-EU countries whose temperatures are below 5.0")
 my_table2 = my_DB.search('countries')
 my_table3 = my_table1.join(my_table2, 'country')
-my_table3_filtered = my_table3.filter(lambda x: x['EU'] == 'no' and float(x['temperature']) < 5.0)
+my_table3_filtered = my_table3.filter(lambda x: x['EU'] == 'no').filter(lambda x: float(x['temperature']) < 5.0)
 print(my_table3_filtered.table)
+print()
+print("Selecting just three fields, city, country, and temperature")
+print(my_table3_filtered.select(['city', 'country', 'temperature']))
+print()
+
+print("Print the min and max temperatures for cities in EU that do not have coastlines")
+my_table3_filtered = my_table3.filter(lambda x: x['EU'] == 'yes').filter(lambda x: x['coastline'] == 'no')
+print("Min temp:", my_table3_filtered.aggregate(lambda x: min(x), 'temperature'))
+print("Max temp:", my_table3_filtered.aggregate(lambda x: max(x), 'temperature'))
+print()
+
+print("Print the min and max latitude for cities in every country")
+for item in my_table2.table:
+    my_table1_filtered = my_table1.filter(lambda x: x['country'] == item['country'])
+    if len(my_table1_filtered.table) >= 1:
+        print(item['country'], my_table1_filtered.aggregate(lambda x: min(x), 'latitude'),
+              my_table1_filtered.aggregate(lambda x: max(x), 'latitude'))
+print()
